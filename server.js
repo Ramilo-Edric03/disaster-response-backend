@@ -6,53 +6,44 @@ const cors = require("cors");
 const app = express();
 const server = http.createServer(app);
 
-const allowedOrigins = [
-    "https://disaster-response-frontend.vercel.app",
-    "http://localhost:3000" // Include this if testing locally
-];
-
 const io = new Server(server, {
     cors: {
-        origin: allowedOrigins,
+        origin: "*", // Allow all origins (change this for security)
         methods: ["GET", "POST"]
     }
 });
 
-app.use(cors({ origin: allowedOrigins }));
+app.use(cors());
 
-let locations = {};
-let requests = [];
+let locations = {}; // Store requester & volunteer locations
 
+// Handle WebSocket connections
 io.on("connection", (socket) => {
-    console.log("User connected", socket.id);
-    
-   socket.on("sendLocation", (data) => {
-    if (
-        typeof data.lat !== "number" ||
-        typeof data.lng !== "number" ||
-        !["requester", "volunteer"].includes(data.role)
-    ) {
-        console.error("Received invalid location data:", data);
-        return;
-    }
+    console.log("A user connected:", socket.id);
 
-    locations[socket.id] = data;
-    io.emit("receiveLocation", locations);
-});
+    // Listen for location updates from the frontend
+    socket.on("sendLocation", (data) => {
+        const { role, lat, lng } = data;
+        locations[role] = { lat, lng };
 
-    
-    socket.on("requestHelp", (data) => {
-        requests.push(data);
-        io.emit("newHelpRequest", requests);
+        console.log(`${role} updated location:`, lat, lng);
+
+        // Broadcast the location to all users
+        io.emit("receiveLocation", data);
     });
 
     socket.on("disconnect", () => {
-        console.log("User disconnected", socket.id);
-        delete locations[socket.id];
-        io.emit("receiveLocation", locations);
+        console.log("A user disconnected:", socket.id);
     });
 });
 
-server.listen(3000, () => {
-    console.log("Server running on port 3000");
+// Default API route
+app.get("/", (req, res) => {
+    res.send("Disaster Response WebSocket Server is Running!");
+});
+
+// Start the server
+const PORT = process.env.PORT || 5000;
+server.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
 });
