@@ -26,10 +26,20 @@ let requests = [];
 io.on("connection", (socket) => {
     console.log("User connected", socket.id);
     
-    socket.on("sendLocation", (data) => {
-        locations[socket.id] = data;
-        io.emit("receiveLocation", locations);
-    });
+   socket.on("sendLocation", (data) => {
+    if (
+        typeof data.lat !== "number" ||
+        typeof data.lng !== "number" ||
+        !["requester", "volunteer"].includes(data.role)
+    ) {
+        console.error("Received invalid location data:", data);
+        return;
+    }
+
+    locations[socket.id] = data;
+    io.emit("receiveLocation", locations);
+});
+
     
     socket.on("requestHelp", (data) => {
         requests.push(data);
