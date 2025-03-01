@@ -7,42 +7,29 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
     cors: {
-        origin: "*", // Allow all origins (change this for security)
+        origin: "*",
         methods: ["GET", "POST"]
     }
 });
 
 app.use(cors());
 
-let locations = {}; // Store requester & volunteer locations
+let locations = {};
 
-// Handle WebSocket connections
 io.on("connection", (socket) => {
-    console.log("A user connected:", socket.id);
-
-    // Listen for location updates from the frontend
+    console.log("User connected", socket.id);
+    
     socket.on("sendLocation", (data) => {
-        const { role, lat, lng } = data;
-        locations[role] = { lat, lng };
-
-        console.log(`${role} updated location:`, lat, lng);
-
-        // Broadcast the location to all users
+        locations[socket.id] = data;
         io.emit("receiveLocation", data);
     });
-
+    
     socket.on("disconnect", () => {
-        console.log("A user disconnected:", socket.id);
+        console.log("User disconnected", socket.id);
+        delete locations[socket.id];
     });
 });
 
-// Default API route
-app.get("/", (req, res) => {
-    res.send("Disaster Response WebSocket Server is Running!");
-});
-
-// Start the server
-const PORT = process.env.PORT || 5000;
-server.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+server.listen(3000, () => {
+    console.log("Server running on port 3000");
 });
