@@ -24,6 +24,10 @@ io.on("connection", (socket) => {
         console.log("New help request:", data);
     });
 
+    socket.on("getRequests", () => {
+        socket.emit("updateRequests", requests);
+    });
+
     socket.on("acceptRequest", ({ lat, lng, volunteerLat, volunteerLng }) => {
         io.emit("matchRequest", { lat, lng, volunteerLat, volunteerLng });
         console.log("Request accepted, route will be drawn.");
