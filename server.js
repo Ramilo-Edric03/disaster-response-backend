@@ -15,6 +15,7 @@ const io = new Server(server, {
 app.use(cors());
 
 let locations = {};
+let requests = [];
 
 io.on("connection", (socket) => {
     console.log("User connected", socket.id);
@@ -22,6 +23,11 @@ io.on("connection", (socket) => {
     socket.on("sendLocation", (data) => {
         locations[socket.id] = data;
         io.emit("receiveLocation", data);
+    });
+    
+    socket.on("requestHelp", (data) => {
+        requests.push(data);
+        io.emit("newHelpRequest", requests);
     });
     
     socket.on("disconnect", () => {
