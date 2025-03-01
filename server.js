@@ -5,14 +5,20 @@ const cors = require("cors");
 
 const app = express();
 const server = http.createServer(app);
+
+const allowedOrigins = [
+    "https://disaster-response-frontend.vercel.app",
+    "http://localhost:3000" // Include this if testing locally
+];
+
 const io = new Server(server, {
     cors: {
-        origin: "*",
+        origin: allowedOrigins,
         methods: ["GET", "POST"]
     }
 });
 
-app.use(cors());
+app.use(cors({ origin: allowedOrigins }));
 
 let locations = {};
 let requests = [];
@@ -29,7 +35,7 @@ io.on("connection", (socket) => {
         requests.push(data);
         io.emit("newHelpRequest", requests);
     });
-    
+
     socket.on("disconnect", () => {
         console.log("User disconnected", socket.id);
         delete locations[socket.id];
