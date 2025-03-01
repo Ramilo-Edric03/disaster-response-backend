@@ -22,7 +22,7 @@ io.on("connection", (socket) => {
     
     socket.on("sendLocation", (data) => {
         locations[socket.id] = data;
-        io.emit("receiveLocation", data);
+        io.emit("receiveLocation", locations);
     });
     
     socket.on("requestHelp", (data) => {
@@ -33,6 +33,7 @@ io.on("connection", (socket) => {
     socket.on("disconnect", () => {
         console.log("User disconnected", socket.id);
         delete locations[socket.id];
+        io.emit("receiveLocation", locations);
     });
 });
 
