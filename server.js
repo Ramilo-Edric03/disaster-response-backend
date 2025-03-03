@@ -41,6 +41,12 @@ io.on("connection", (socket) => {
         io.emit("requestAccepted", data);
     });
 
+    // Handle live volunteer location updates
+    socket.on("volunteerLocationUpdate", (data) => {
+        console.log("Live volunteer location update:", data);
+        io.emit("updateVolunteerLocation", data);
+    });
+
     socket.on("disconnect", () => {
         console.log("A user disconnected:", socket.id);
     });
