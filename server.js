@@ -52,10 +52,11 @@ io.on("connection", (socket) => {
     });
 
     socket.on("clearRequests", () => {
-        console.log("All requests cleared.");
-        requests = []; // Reset the request list
-        io.emit("updateRequests", requests); // Send update to all clients
+        console.log("All requests cleared by a volunteer.");
+        requests = []; // Clear requests from memory
+        io.emit("updateRequests", requests); // Broadcast update to all users
     });
+    
     
 });
 
