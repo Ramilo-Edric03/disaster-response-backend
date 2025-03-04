@@ -20,44 +20,50 @@ let requests = []; // Store active requests
 io.on("connection", (socket) => {
     console.log("A user connected:", socket.id);
 
+    // Send all active requests immediately to the new volunteer
+    socket.emit("updateRequests", requests);
+
     // Handle new help requests
     socket.on("sendRequest", (data) => {
         console.log("New request received:", data);
         requests.push(data);
-        io.emit("updateRequests", requests);
+        io.emit("updateRequests", requests); // Send updated request list to all volunteers
     });
-
-    socket.emit("updateRequests", requests);
 
     // Handle volunteer accepting a request
     socket.on("acceptRequest", (data) => {
         console.log("Request accepted:", data);
         
-        // Remove accepted request from list
+        // Remove the accepted request from the list
         requests = requests.filter(req => req.lat !== data.lat || req.lng !== data.lng);
         
-        // Notify requester that a volunteer is coming
+        // Notify all users that the request was accepted
         io.emit("requestAccepted", data);
+        
+        // Send updated request list to all volunteers
+        io.emit("updateRequests", requests);
     });
 
     // Handle live volunteer location updates
     socket.on("volunteerLocationUpdate", (data) => {
         console.log("Live volunteer location update:", data);
+
+        // Broadcast volunteer's updated location only to the requester
         io.emit("updateVolunteerLocation", data);
+    });
+
+    // Handle clearing all requests
+    socket.on("clearRequests", () => {
+        console.log("All requests cleared by a volunteer.");
+        requests = []; // Clear requests from memory
+        io.emit("updateRequests", requests); // Notify all users
     });
 
     socket.on("disconnect", () => {
         console.log("A user disconnected:", socket.id);
     });
-
-    socket.on("clearRequests", () => {
-        console.log("All requests cleared by a volunteer.");
-        requests = []; // Clear requests from memory
-        io.emit("updateRequests", requests); // Broadcast update to all users
-    });
-    
-    
 });
+
 
 // Default API route
 app.get("/", (req, res) => {
