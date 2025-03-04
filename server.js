@@ -27,15 +27,14 @@ io.on("connection", (socket) => {
         io.emit("updateRequests", requests);
     });
 
+    socket.emit("updateRequests", requests);
+
     // Handle volunteer accepting a request
     socket.on("acceptRequest", (data) => {
         console.log("Request accepted:", data);
         
         // Remove accepted request from list
         requests = requests.filter(req => req.lat !== data.lat || req.lng !== data.lng);
-        
-        // Notify all volunteers about updated requests
-        io.emit("updateRequests", requests);
         
         // Notify requester that a volunteer is coming
         io.emit("requestAccepted", data);
